@@ -46,7 +46,7 @@ app.set('trust proxy', 1);
 
 app.use(log.connectLogger(log.getLogger('http'), { level: 'auto' }));
 
-app.get('/temp', (req, res, next) => {
+app.get('/api/temp', (req, res, next) => {
   measureTemp()
     .then(stdout =>
       res.status(200).json({
