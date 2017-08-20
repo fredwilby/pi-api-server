@@ -1,7 +1,6 @@
 const express = require('express');
 const cors = require('cors');
 const log = require('log4js');
-const { exec } = require('child_process');
 const fs = require('fs');
 
 const handleError = require('./handleError');
@@ -17,11 +16,11 @@ log.configure({
 
 const measureTemp = () =>
   new Promise((res, rej) => {
-	  fs.readFile('/data/temp', 'utf8', (err, data) => {
-		  if(err) { return rej(err); }
-		  appLogger.info(data);
-		  return res((Number(data)/1000)+ ' deg C');
-	  });
+    fs.readFile('/data/temp', 'utf8', (err, data) => {
+      if (err) { return rej(err); }
+      appLogger.info(data);
+      return res(`${Number(data) / 1000} deg C`);
+    });
   });
 
 const app = express();
@@ -51,16 +50,11 @@ app.use(log.connectLogger(log.getLogger('http'), { level: 'auto' }));
 app.get('/api/temp', (req, res, next) => {
   appLogger.info('getting temp...');
   measureTemp()
-    .then(temp =>
-      res.status(200).json({
-	      temp,
-      }).send(),
-    )
+    .then(temp => res.status(200).json({ temp }))
     .catch(err => next(err));
 });
 
 app.use(handleError(appLogger));
-
 
 appLogger.info('starting server...');
 app.listen(8080, '0.0.0.0', () => {
