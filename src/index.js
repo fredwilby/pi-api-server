@@ -2,18 +2,11 @@ const express = require('express');
 const cors = require('cors');
 const log = require('log4js');
 const { exec } = require('child_process');
+const fs = require('fs');
 
 const handleError = require('./handleError');
 
-const measureTemp = () =>
-  new Promise((res, rej) => {
-    exec('/opt/vc/bin/vcgencmd measure_temp', (err, stdout) => {
-      if (err) {
-        return rej(err);
-      }
-      return res(stdout);
-    });
-  });
+const appLogger = log.getLogger('app');
 
 log.configure({
   appenders: {
@@ -22,7 +15,14 @@ log.configure({
   categories: { default: { appenders: ['console'], level: 'trace' } },
 });
 
-const appLogger = log.getLogger('app');
+const measureTemp = () =>
+  new Promise((res, rej) => {
+	  fs.readFile('/data/temp', 'utf8', (err, data) => {
+		  if(err) { return rej(err); }
+		  appLogger.info(data);
+		  return res((Number(data)/1000)+ ' deg C');
+	  });
+  });
 
 const app = express();
 app.use('/health', (req, res) => res.status(200).send());
@@ -51,9 +51,9 @@ app.use(log.connectLogger(log.getLogger('http'), { level: 'auto' }));
 app.get('/api/temp', (req, res, next) => {
   appLogger.info('getting temp...');
   measureTemp()
-    .then(stdout =>
+    .then(temp =>
       res.status(200).json({
-        temp: parseFloat(stdout.split('=')[1].split('\'')[0]),
+	      temp,
       }).send(),
     )
     .catch(err => next(err));

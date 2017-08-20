@@ -10,4 +10,6 @@ RUN chown -R node /app
 USER node
 EXPOSE 8080
 
+VOLUME /data/temp
+
 CMD ["node", "/app/src/index.js"]
