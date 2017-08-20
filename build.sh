@@ -1,3 +1,3 @@
 #!/bin/sh
 
-docker build -t fredwilby/pi-api-server:latest
+docker build -t fredwilby/pi-api-server:latest .
