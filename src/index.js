@@ -3,6 +3,8 @@ const cors = require('cors');
 const log = require('log4js');
 const { exec } = require('child_process');
 
+const handleError = require('./handleError');
+
 const measureTemp = () =>
   new Promise((res, rej) => {
     exec('/opt/vc/bin/vcgencmd measure_temp', (err, stdout) => {
@@ -47,14 +49,17 @@ app.set('trust proxy', 1);
 app.use(log.connectLogger(log.getLogger('http'), { level: 'auto' }));
 
 app.get('/api/temp', (req, res, next) => {
+  appLogger.info('getting temp...');
   measureTemp()
     .then(stdout =>
       res.status(200).json({
         temp: parseFloat(stdout.split('=')[1].split('\'')[0]),
-      }),
+      }).send(),
     )
     .catch(err => next(err));
 });
+
+app.use(handleError(appLogger));
 
 
 appLogger.info('starting server...');
